@@ -1,6 +1,6 @@
 // src/App.tsx
 import React from 'react';
-import { Routes, Route, Link, Navigate } from 'react-router-dom';
+import { Routes, Route, Link, Navigate, useLocation } from 'react-router-dom';
 import './App.css';
 
 import { useCharacter } from './context/CharacterContext';
@@ -10,9 +10,27 @@ import BattlePage from './pages/BattlePage';
 import QuestsPage from './pages/QuestsPage';
 import TopPage from './pages/TopPage';
 
+import mageShelterBg from './assets/backgrounds/MAGE_SHELTER.png';
+
 const App: React.FC = () => {
   const { character } = useCharacter();
   const hasCharacter = Boolean(character);
+  const location = useLocation();
+
+  // мы сейчас на экране создания персонажа?
+  const isCreatePage = location.pathname === '/create';
+
+  // фон только для /create
+  const appContentStyle = isCreatePage
+    ? {
+        backgroundImage: `url(${mageShelterBg})`,
+        // картинка целиком по высоте окна между шапкой и навигацией
+        backgroundSize: 'auto 100%',
+        backgroundPosition: 'center bottom',
+        backgroundRepeat: 'no-repeat',
+        backgroundColor: '#020617',
+      }
+    : undefined;
 
   return (
     <div className="app">
@@ -26,7 +44,7 @@ const App: React.FC = () => {
       </header>
 
       {/* Основной контент с роутами */}
-      <main className="app-content">
+      <main className="app-content" style={appContentStyle}>
         <Routes>
           <Route
             path="/"
