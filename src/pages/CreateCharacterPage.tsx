@@ -6,10 +6,11 @@ import type { ClassKey, Gender } from '../types/character';
 
 import mageBaseMale from '../assets/chars/mage_base_male.png';
 import mageBaseFemale from '../assets/chars/mage_base_female.png';
+import mageShelterBg from '../assets/backgrounds/MAGE_SHELTER.png';
 
 type Step = 1 | 2 | 3;
 
-// Текстовые лейблы
+// текстовые лейблы
 const CLASS_LABELS: Record<ClassKey, string> = {
   mage: 'Маг',
   archer: 'Лучник',
@@ -26,32 +27,35 @@ const CreateCharacterPage: React.FC = () => {
   const navigate = useNavigate();
   const { character, createCharacter, resetCharacter } = useCharacter();
 
-  // -------- состояние мастера --------
   const [step, setStep] = useState<Step>(1);
 
   const [nickname, setNickname] = useState<string>(character?.nickname ?? '');
-  const [classKey, setClassKey] = useState<ClassKey>(character?.class ?? 'mage');
+  const [classKey, setClassKey] = useState<ClassKey>(
+    character?.class ?? 'mage',
+  );
   const [gender, setGender] = useState<Gender>(character?.gender ?? 'male');
-  const [skinColor, setSkinColor] = useState<string>(character?.skinColor ?? 'light');
-  const [hairStyle, setHairStyle] = useState<string>(character?.hairStyle ?? 'hood');
+  const [skinColor, setSkinColor] = useState<string>(
+    character?.skinColor ?? 'light',
+  );
+  const [hairStyle, setHairStyle] = useState<string>(
+    character?.hairStyle ?? 'hood',
+  );
 
-  // -------- превью --------
+  // превью
   const previewName = nickname.trim() || 'Безымянный';
   const previewClass = CLASS_LABELS[classKey];
   const previewGender = GENDER_LABELS[gender];
   const spriteSrc = gender === 'male' ? mageBaseMale : mageBaseFemale;
 
-  const stepTitle =
-    step === 1 ? 'Придумай имя героя' : 'Создание персонажа';
+  const stepTitle = step === 1 ? 'Придумай имя героя' : 'Создание персонажа';
 
   const stepSubtitle =
     step === 1
       ? 'Ник будет отображаться в боях и рейтингах.'
       : step === 2
       ? 'Выбери класс и пол. Это влияет на статы и стиль игры.'
-      : 'Подбери внешность. Это не меняет статы, только визуал.';
+      : 'Проверь ник и создай героя.';
 
-  // -------- переходы по шагам --------
   const goToStep = (target: Step) => setStep(target);
 
   const handleNextFromStep1 = () => {
@@ -101,154 +105,117 @@ const CreateCharacterPage: React.FC = () => {
 
   return (
     <div className="page page-create">
-      <div className="wizard">
-        {/* Заголовок мастера */}
-        <div className="wizard-title-block">
+      {/* фон берлоги на всю ширину экрана */}
+      <div
+        className="page-create__bg"
+        style={{ backgroundImage: `url(${mageShelterBg})` }}
+      />
+
+      {/* контент поверх фона */}
+      <div className="wizard create-shell">
+        {/* заголовок шага */}
+        <header className="create-header">
           <div className="wizard-step-indicator">Шаг {step} из 3</div>
           <h1 className="page-title">{stepTitle}</h1>
           <p className="page-subtitle">{stepSubtitle}</p>
-        </div>
+        </header>
 
-        {/* Персонаж на фоне — только для шагов 2 и 3 */}
-        {(step === 2 || step === 3) && (
-          <div className="create-preview__hero">
-            <img
-              src={spriteSrc}
-              alt="Персонаж"
-              className="create-preview__hero-img"
-            />
-          </div>
-        )}
+        {/* область с героем / просто фон на шаге 1 */}
+        <main
+          className={
+            'create-main' + (step === 1 ? ' create-main--step1' : '')
+          }
+        >
+          {(step === 2 || step === 3) && (
+            <img src={spriteSrc} alt="Персонаж" className="create-hero" />
+          )}
+        </main>
 
-        {/* Шаг 1: Никнейм */}
-        {step === 1 && (
-          <section className="card wizard-card">
-            <h2 className="section-title">Имя героя</h2>
-            <div className="form-row">
-              <label className="form-label">
-                Никнейм
-                <input
-                  className="form-input"
-                  value={nickname}
-                  onChange={(e) => setNickname(e.target.value)}
-                  placeholder="Например, NightHowler"
-                />
-              </label>
-            </div>
-
-            <div className="wizard-buttons">
-              <button
-                type="button"
-                className="button-primary"
-                onClick={handleNextFromStep1}
-              >
-                Дальше
-              </button>
-            </div>
-          </section>
-        )}
-
-        {/* Шаг 2: Класс и пол */}
-        {step === 2 && (
-          <section className="card wizard-card">
-            <h2 className="section-title">Класс и пол</h2>
-
-            <div className="form-row">
-              <label className="form-label">
-                Класс
-                <select
-                  className="form-select"
-                  value={classKey}
-                  onChange={(e) => setClassKey(e.target.value as ClassKey)}
-                >
-                  <option value="mage">Маг — урон и крит</option>
-                  <option value="archer">Лучник — криты и уворот</option>
-                  <option value="knight">Рыцарь — много HP</option>
-                  <option value="dagger">Даггерщик — высокий крит</option>
-                </select>
-              </label>
-            </div>
-
-            <div className="form-row">
-              <label className="form-label">
-                Пол
-                <select
-                  className="form-select"
-                  value={gender}
-                  onChange={(e) => setGender(e.target.value as Gender)}
-                >
-                  <option value="male">Мужской</option>
-                  <option value="female">Женский</option>
-                </select>
-              </label>
-            </div>
-
-            <div className="wizard-buttons">
-              <button
-                type="button"
-                className="link-button"
-                onClick={handleBack}
-              >
-                Назад
-              </button>
-              <button
-                type="button"
-                className="button-primary"
-                onClick={handleNextFromStep2}
-              >
-                Дальше
-              </button>
-            </div>
-          </section>
-        )}
-
-        {/* Шаг 3: Внешность + финал */}
-        {step === 3 && (
-          <>
-            {/* Карточка с информацией о герое */}
-            <section className="card hero-info-card">
-              <h2 className="section-title">Твой герой</h2>
-              <div className="hero-card__name">{previewName}</div>
-              <div className="hero-card__meta">
-                {previewClass} · {previewGender}
+        {/* нижняя карточка */}
+        <footer className="create-footer">
+          {step === 1 && (
+            <section className="card wizard-card">
+              <h2 className="section-title">Имя героя</h2>
+              <div className="form-row">
+                <label className="form-label">
+                  Никнейм
+                  <input
+                    className="form-input"
+                    value={nickname}
+                    onChange={(e) => setNickname(e.target.value)}
+                    placeholder="Например, NightHowler"
+                  />
+                </label>
               </div>
-              <div className="hero-card__hint">
-                Базовая одежда — позже сюда «наденем» шмот и оружие.
+
+              <div className="wizard-buttons">
+                <button
+                  type="button"
+                  className="button-primary button-primary--full"
+                  onClick={handleNextFromStep1}
+                >
+                  Дальше
+                </button>
               </div>
             </section>
+          )}
 
-            {/* Карточка выбора внешности */}
+          {step === 2 && (
             <section className="card wizard-card">
-              <h2 className="section-title">Внешность</h2>
+              <h2 className="section-title">Класс и пол</h2>
 
-              <div className="form-row-inline">
+              <div className="form-row">
                 <label className="form-label">
-                  Цвет кожи
+                  Класс
                   <select
                     className="form-select"
-                    value={skinColor}
-                    onChange={(e) => setSkinColor(e.target.value)}
+                    value={classKey}
+                    onChange={(e) => setClassKey(e.target.value as ClassKey)}
                   >
-                    <option value="light">Светлая</option>
-                    <option value="tan">Смуглая</option>
-                    <option value="dark">Тёмная</option>
-                  </select>
-                </label>
-
-                <label className="form-label">
-                  Прическа / капюшон
-                  <select
-                    className="form-select"
-                    value={hairStyle}
-                    onChange={(e) => setHairStyle(e.target.value)}
-                  >
-                    <option value="hood">Капюшон</option>
-                    <option value="short">Короткие</option>
-                    <option value="long">Длинные</option>
-                    <option value="braids">Косы</option>
+                    <option value="mage">Маг — урон и крит</option>
+                    <option value="archer">Лучник — криты и уворот</option>
+                    <option value="knight">Рыцарь — много HP</option>
+                    <option value="dagger">Даггерщик — высокий крит</option>
                   </select>
                 </label>
               </div>
+
+              <div className="form-row">
+                <label className="form-label">
+                  Пол
+                  <select
+                    className="form-select"
+                    value={gender}
+                    onChange={(e) => setGender(e.target.value as Gender)}
+                  >
+                    <option value="male">Мужской</option>
+                    <option value="female">Женский</option>
+                  </select>
+                </label>
+              </div>
+
+              <div className="wizard-buttons">
+                <button
+                  type="button"
+                  className="link-button"
+                  onClick={handleBack}
+                >
+                  Назад
+                </button>
+                <button
+                  type="button"
+                  className="button-primary"
+                  onClick={handleNextFromStep2}
+                >
+                  Дальше
+                </button>
+              </div>
+            </section>
+          )}
+
+          {step === 3 && (
+            <section className="card wizard-card">
+              <div className="wizard-nickname">{previewName}</div>
 
               <div className="wizard-buttons">
                 <button
@@ -277,8 +244,8 @@ const CreateCharacterPage: React.FC = () => {
                 </button>
               )}
             </section>
-          </>
-        )}
+          )}
+        </footer>
       </div>
     </div>
   );

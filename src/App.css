@@ -2,30 +2,43 @@
   font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI',
     sans-serif;
   line-height: 1.5;
-  color: #0f172a;
-  background-color: #020617; /* тёмная подложка под всё приложение */
+  color: #e2e8f0;
+  background-color: #020617;
 }
 
-* {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
 }
 
+html,
 body {
   margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+}
+
+body {
   min-height: 100vh;
   background-color: #020617;
 }
 
 #root {
-  min-height: 100vh;
+  width: 100%;
+  height: 100%;
 }
 
-/* ---------- Общий каркас приложения ---------- */
+/* ---------- общий каркас приложения ---------- */
 
-.app {
+.app-root {
   min-height: 100vh;
+  width: 100vw;
   display: flex;
   flex-direction: column;
+  background-color: #020617;
+  color: #e2e8f0;
 }
 
 /* верхняя панель */
@@ -33,245 +46,319 @@ body {
 .top-bar {
   position: sticky;
   top: 0;
-  z-index: 10;
+  z-index: 20;
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 12px 16px;
-  background: #ffffff;
-  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.08);
+  background: radial-gradient(circle at top left, #111827, #020617 60%);
+  color: #e5e7eb;
 }
 
 .top-bar__logo {
-  font-weight: 600;
+  font-weight: 700;
   font-size: 16px;
+  letter-spacing: 0.06em;
 }
 
-.top-bar__right {
+.top-bar__currencies {
   display: flex;
-  gap: 12px;
-  font-size: 14px;
+  gap: 8px;
 }
 
-/* основная область с роутами */
+.currency-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.9);
+  font-size: 12px;
+}
+
+.currency-pill__icon {
+  font-size: 13px;
+}
+
+.currency-pill__value {
+  line-height: 1;
+}
+
+/* основной контейнер страниц */
 
 .app-content {
   flex: 1;
   display: flex;
-  justify-content: center;
-  align-items: flex-start; /* контент прижат к верху */
-  padding: 16px 0 72px; /* отступы сверху и над нижним меню */
-  background-color: transparent;
+  width: 100%;
 }
 
-/* базовый контейнер для страниц */
+/* ---------- базовый layout страниц ---------- */
 
 .page {
   width: 100%;
-  max-width: 480px;
-  margin: 0 auto;
 }
 
-/* нижняя навигация */
-
-.bottom-nav {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  display: flex;
-  background: #ffffff;
-  border-top: 1px solid rgba(15, 23, 42, 0.08);
-}
-
-.bottom-nav__item {
-  flex: 1;
-  text-align: center;
-  padding: 10px 0;
-  font-size: 14px;
-  text-decoration: none;
-  color: #111827;
-}
-
-/* ===================================================================== */
-/*                         СТРАНИЦА СОЗДАНИЯ ПЕРСОНАЖА                    */
-/* ===================================================================== */
+/* ---------- страница создания героя ---------- */
 
 .page-create {
-  padding: 16px 16px 96px; /* запас снизу под навигацию */
-  min-height: calc(100vh - 96px); /* зона между шапкой и меню */
-  background: transparent; /* фон задаётся через App.tsx */
+  position: relative;
+  width: 100vw;                 /* ширина = экран */
+  max-width: 100vw;
+  min-height: calc(100vh - 56px); /* высота минус топ-бар */
+  margin: 0;
+  overflow: hidden;             /* без горизонтального скролла */
+  background-color: #020617;
 }
 
-/* шапка мастера */
+/* фоновый слой с берлогой на всю ширину */
 
-.wizard {
-  width: 100%;
+.page-create__bg {
+  position: absolute;
+  inset: 0;                     /* top/right/bottom/left = 0 */
+  background-size: cover;
+  background-position: center bottom;
+  background-repeat: no-repeat;
+  z-index: 0;
+}
+
+/* контент поверх фона */
+
+.create-shell {
+  position: relative;
+  z-index: 1;
+  min-height: 100%;
   display: flex;
   flex-direction: column;
-  gap: 16px;
 }
 
-.wizard-title-block {
-  margin-bottom: 8px;
+/* заголовок шага */
+
+.create-header {
+  padding: 12px 16px 10px;
+  text-shadow: 0 2px 6px rgba(15, 23, 42, 0.9);
+  background: linear-gradient(
+    to bottom,
+    rgba(2, 6, 23, 0.95),
+    rgba(2, 6, 23, 0.6),
+    transparent
+  );
 }
 
 .wizard-step-indicator {
-  font-size: 12px;
-  color: #e5e7eb;
-  opacity: 0.8;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: #cbd5f5;
+  opacity: 0.9;
 }
 
 .page-title {
-  font-size: 24px;
+  margin: 2px 0 0;
+  font-size: 22px;
   font-weight: 700;
-  margin: 4px 0;
-  color: #e5e7eb;
 }
 
 .page-subtitle {
-  font-size: 14px;
-  color: #e5e7eb;
-  margin: 0;
-  text-shadow: 0 1px 3px #020617;
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: #cbd5f5;
 }
 
-/* герой на фоне — одно и то же окно для шагов 2–3 */
+/* область, где стоит герой / просто фон на шаге 1 */
 
-.create-preview__hero {
-  /* СДЕЛАЛ ВЫШЕ И ОТДАЛИЛ ОТ КАРТОЧКИ */
-  height: 360px;                  /* было 260–320, теперь герой ниже относительно фона */
+.create-main {
+  flex: 1;
   display: flex;
   align-items: flex-end;
   justify-content: center;
-  pointer-events: none;           /* чтобы клики шли по UI */
-  margin-bottom: 24px;            /* зазор, чтобы было видно плитку между ногами и карточкой */
+  padding-bottom: 8px;
 }
 
-.create-preview__hero-img {
-  /* ЧУТЬ МЕНЬШЕ, ЧТОБЫ НЕ ВИСЕЛ НА КАРТОЧКЕ */
-  height: 210px;                  /* было 220 */
+.create-main--step1 {
+  /* на первом шаге героя нет — просто воздух над карточкой */
+  align-items: flex-end;
+}
+
+.create-hero {
+  height: 340px;     /* один размер для шага 2 и 3 — крупный */
+  width: auto;
   image-rendering: pixelated;
-  image-rendering: crisp-edges;
+  transform-origin: center bottom;
+  filter: drop-shadow(0 12px 20px rgba(0, 0, 0, 0.9));
 }
 
-/* ---------- Карточки и секции ---------- */
+/* нижняя область с карточкой */
+
+.create-footer {
+  padding: 0 16px 16px;
+}
+
+/* ---------- карточки и формы ---------- */
 
 .card {
-  background: rgba(15, 23, 42, 0.9); /* тёмная полупрозрачная панель */
-  border-radius: 16px;
-  padding: 16px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(6px);
-  color: #e5e7eb;
+  border-radius: 24px;
+  padding: 16px 18px 18px;
+  background: radial-gradient(circle at top left, #273f9f, #0b1020);
+  box-shadow:
+    0 18px 40px rgba(0, 0, 0, 0.85),
+    0 0 0 1px rgba(148, 163, 184, 0.5),
+    0 0 22px rgba(56, 189, 248, 0.2);
+  backdrop-filter: blur(18px);
+}
+
+/* одна ширина и высота карточек для шагов 1–3 */
+
+.wizard-card {
+  width: calc(100% - 32px);   /* одинаковая ширина на всех шагах */
+  max-width: 480px;
+  margin: 0 auto 16px;
+
+  min-height: 220px;          /* одинаковая высота */
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between; /* заголовок сверху, кнопки снизу */
 }
 
 .section-title {
-  font-size: 16px;
-  font-weight: 600;
-  margin-bottom: 12px;
-}
-
-/* маленькая карточка с именем/классом на шаге 3 */
-
-.hero-info-card {
-  width: 100%;
-  max-width: 360px;
-  align-self: center;
-}
-
-.hero-card__name {
+  margin: 0 0 10px;
   font-size: 18px;
-  font-weight: 700;
+  font-weight: 600;
 }
-
-.hero-card__meta {
-  font-size: 14px;
-  color: #9ca3af;
-}
-
-.hero-card__hint {
-  font-size: 12px;
-  color: #9ca3af;
-}
-
-/* содержимое шагов мастера */
-
-.wizard-card {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-/* ---------- Форма ---------- */
 
 .form-row {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
+  margin-bottom: 8px;
 }
 
 .form-row-inline {
   display: flex;
-  gap: 8px;
-}
-
-.form-row-inline .form-label {
-  flex: 1;
+  flex-wrap: wrap;
+  gap: 12px;
 }
 
 .form-label {
-  font-size: 14px;
-  font-weight: 500;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+  color: #cbd5f5;
 }
 
 .form-input,
 .form-select {
-  width: 100%;
-  padding: 8px 10px;
-  border-radius: 8px;
-  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  border: 1px solid rgba(148, 163, 184, 0.7);
+  padding: 9px 12px;
   font-size: 14px;
-  background: #ffffffdd;
+  background: rgba(15, 23, 42, 0.97);
+  color: #e2e8f0;
+  outline: none;
 }
 
-/* ---------- Кнопки ---------- */
+.form-input::placeholder {
+  color: rgba(148, 163, 184, 0.8);
+}
+
+.form-input:focus,
+.form-select:focus {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 1px rgba(129, 140, 248, 0.7);
+}
+
+/* ник на 3 шаге */
+
+.wizard-nickname {
+  width: 100%;
+  text-align: center;
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+/* кнопки мастера */
 
 .wizard-buttons {
   display: flex;
   justify-content: space-between;
-  gap: 8px;
+  gap: 10px;
   margin-top: 8px;
 }
 
-.button-primary {
-  flex: 1;
-  width: 100%;
-  padding: 10px 12px;
+.button-primary,
+.link-button {
+  font-family: inherit;
   border-radius: 999px;
-  border: none;
-  cursor: pointer;
-  background: linear-gradient(135deg, #4f46e5, #22c55e);
-  color: #ffffff;
-  font-weight: 600;
   font-size: 15px;
+  cursor: pointer;
+  border: none;
 }
 
-.button-primary:active {
-  transform: translateY(1px);
+.button-primary {
+  padding: 10px 18px;
+  background: linear-gradient(90deg, #4f46e5, #22c55e);
+  color: white;
+  font-weight: 600;
+  box-shadow: 0 12px 30px rgba(79, 70, 229, 0.5),
+    0 0 0 1px rgba(34, 197, 94, 0.2);
+}
+
+.button-primary--full {
+  width: 100%;
 }
 
 .link-button {
-  border: none;
+  padding: 4px 0;
   background: none;
-  color: #a5b4fc;
+  color: #93c5fd;
   font-size: 13px;
   text-decoration: underline;
+}
+
+.create-reset-button {
+  margin-top: 6px;
+  text-align: left;
+}
+
+/* ---------- нижнее меню для остальных экранов ---------- */
+
+.bottom-nav {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 60px;
+  padding: 6px 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(15, 23, 42, 0.98);
+  border-top: 1px solid rgba(148, 163, 184, 0.4);
+  box-shadow: 0 -10px 24px rgba(15, 23, 42, 0.9);
+  z-index: 30;
+}
+
+.bottom-nav__item {
+  flex: 1;
+  background: none;
+  border: none;
+  color: #94a3b8;
+  font-size: 13px;
+  padding: 4px 0;
   cursor: pointer;
 }
 
-/* кнопка сброса героя на шаге 3 */
+.bottom-nav__item--active {
+  color: #f9fafb;
+  font-weight: 600;
+}
 
-.create-reset-button {
-  margin-top: 4px;
+/* адаптация под низкие экраны */
+
+@media (max-height: 720px) {
+  .create-hero {
+    height: 300px;
+  }
+
+  .card {
+    padding: 14px 14px 16px;
+  }
 }
