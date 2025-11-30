@@ -10,19 +10,6 @@ import mageShelterBg from '../assets/backgrounds/MAGE_SHELTER.png';
 
 type Step = 1 | 2 | 3;
 
-// текстовые лейблы
-const CLASS_LABELS: Record<ClassKey, string> = {
-  mage: 'Маг',
-  archer: 'Лучник',
-  knight: 'Рыцарь',
-  dagger: 'Даггерщик',
-};
-
-const GENDER_LABELS: Record<Gender, string> = {
-  male: 'Мужской',
-  female: 'Женский',
-};
-
 const CreateCharacterPage: React.FC = () => {
   const navigate = useNavigate();
   const { character, createCharacter, resetCharacter } = useCharacter();
@@ -43,8 +30,6 @@ const CreateCharacterPage: React.FC = () => {
 
   // превью
   const previewName = nickname.trim() || 'Безымянный';
-  const previewClass = CLASS_LABELS[classKey];
-  const previewGender = GENDER_LABELS[gender];
   const spriteSrc = gender === 'male' ? mageBaseMale : mageBaseFemale;
 
   const stepTitle = step === 1 ? 'Придумай имя героя' : 'Создание персонажа';
