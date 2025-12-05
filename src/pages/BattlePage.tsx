@@ -1,7 +1,8 @@
 // src/pages/BattlePage.tsx
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { useCharacter } from '../context/CharacterContext';
+import React from "react";
+import { Link } from "react-router-dom";
+import { useCharacter } from "../context/CharacterContext";
+import { PvpTest } from "../game/PvpTest";
 
 const BattlePage: React.FC = () => {
   const { character } = useCharacter();
@@ -19,7 +20,9 @@ const BattlePage: React.FC = () => {
   return (
     <div className="page">
       <h1>Быстрые бои</h1>
-      <p>Здесь позже будет боёвка 1×1. Пока заглушка.</p>
+
+      {/* тут наш тестовый PVP с магом и кнопками */}
+      <PvpTest />
     </div>
   );
 };

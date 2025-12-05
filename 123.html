@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тест Анимации Мага (Исправленный)</title>
+    <style>
+        body {
+            background-color: #222;
+            color: #eee;
+            font-family: sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+
+        h1 { margin-bottom: 10px; }
+
+        #canvas-container {
+            margin: 20px 0;
+            border: 3px solid #555;
+            background-color: #333;
+            /* Критически важно для пиксель-арта! */
+            image-rendering: pixelated;
+            /* Для Firefox */
+            image-rendering: crisp-edges; 
+        }
+
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            max-width: 600px;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            border: 1px solid #444;
+            background-color: #f0f0f0;
+            color: #333;
+            border-radius: 5px;
+            transition: background-color 0.2s;
+            /* Запрещаем выделение текста на кнопках */
+            user-select: none;
+        }
+
+        button:hover:not(:disabled) { background-color: #e0e0e0; }
+        button:disabled { opacity: 0.5; cursor: not-allowed; }
+        button:active:not(:disabled) { transform: translateY(1px); }
+
+        .btn-attack { background-color: #d9534f; color: white; border: none; }
+        .btn-attack:hover:not(:disabled) { background-color: #c9302c; }
+        
+        .btn-hit { background-color: #f0ad4e; color: white; border: none; }
+        .btn-hit:hover:not(:disabled) { background-color: #ec971f; }
+
+        .btn-death { background-color: #000; color: red; border: 1px solid red; }
+        
+        #status { margin-top: 20px; font-weight: bold; color: #aaa; }
+    </style>
+</head>
+<body>
+
+    <h1>⚡ Тест Анимации Мага ⚡</h1>
+    
+    <div id="canvas-container">
+        <canvas id="gameCanvas" width="256" height="256"></canvas>
+    </div>
+
+    <div class="controls">
+        <button onclick="setAnimation('idle')">Стоять</button>
+        <button onclick="setAnimation('walk')">Идти</button>
+        <button onclick="setAnimation('run')">Бежать</button>
+    </div>
+    <br>
+    <div class="controls">
+        <button class="btn-attack" onclick="setAnimation('spellCastPrimary')">Быстрая Атака</button>
+        <button class="btn-attack" style="background-color: #337ab7;" onclick="setAnimation('spellCastBig')">Мощная Атака</button>
+    </div>
+    <br>
+    <div class="controls">
+        <button class="btn-hit" onclick="setAnimation('takeHit')">Получить урон</button>
+        <button onclick="setAnimation('block')">Блок</button>
+        <button class="btn-death" onclick="setAnimation('death')">Смерть</button>
+        <button style="background-color: gold; color: black;" onclick="setAnimation('victory')">Победа!</button>
+    </div>
+
+    <p id="status">Текущая анимация: idle</p>
+
+
+    <script>
+        // --- КОНФИГУРАЦИЯ ---
+        const SPRITE_IMAGE_URL = 'mage-spritesheet.png'; // Имя файла должно совпадать!
+        const FRAME_WIDTH = 64;
+        const FRAME_HEIGHT = 64;
+        const SCALE = 4; // Увеличение в 4 раза
+
+        const ANIMATIONS = {
+            idle: { row: 0, frames: 4, loop: true, frameSpeed: 200 },
+            walk: { row: 1, frames: 8, loop: true, frameSpeed: 100 },
+            run: { row: 2, frames: 6, loop: true, frameSpeed: 80 },
+            spellCastPrimary: { row: 3, frames: 5, loop: false, frameSpeed: 80 },
+            spellCastBig: { row: 4, frames: 7, loop: false, frameSpeed: 120 },
+            block: { row: 5, frames: 3, loop: true, frameSpeed: 150 },
+            takeHit: { row: 6, frames: 4, loop: false, frameSpeed: 80 },
+            death: { row: 7, frames: 8, loop: false, frameSpeed: 120 },
+            heal: { row: 8, frames: 6, loop: false, frameSpeed: 150 },
+            buff: { row: 9, frames: 6, loop: false, frameSpeed: 150 },
+            victory: { row: 10, frames: 1, loop: true, frameSpeed: 1000 },
+            pickUp: { row: 11, frames: 6, loop: false, frameSpeed: 100 },
+            jump: { row: 12, frames: 7, loop: false, frameSpeed: 90 },
+            dash: { row: 13, frames: 5, loop: false, frameSpeed: 60 },
+        };
+
+        // --- ИНИЦИАЛИЗАЦИЯ ---
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const statusText = document.getElementById('status');
+        
+        canvas.width = FRAME_WIDTH * SCALE;
+        canvas.height = FRAME_HEIGHT * SCALE;
+        
+        // ВАЖНО: Отключаем сглаживание на самом контексте рисования
+        ctx.imageSmoothingEnabled = false;
+        ctx.mozImageSmoothingEnabled = false;
+        ctx.webkitImageSmoothingEnabled = false;
+
+        let gameState = {
+            currentAnimKey: 'idle',
+            frameIndex: 0,
+            lastFrameTime: 0,
+            animationFinished: false,
+            image: new Image()
+        };
+
+        gameState.image.src = SPRITE_IMAGE_URL;
+        gameState.image.onload = () => {
+            console.log('Спрайт загружен, поехали!');
+            requestAnimationFrame(gameLoop);
+        };
+        gameState.image.onerror = () => {
+            alert('ОШИБКА: Не найден файл mage-spritesheet.png! Положите его рядом с index.html');
+            statusText.textContent = 'Ошибка загрузки изображения!';
+            statusText.style.color = 'red';
+        };
+
+        // --- УПРАВЛЕНИЕ ---
+        function setAnimation(animKey) {
+            if (gameState.currentAnimKey === animKey && ANIMATIONS[animKey].loop) return;
+
+            gameState.currentAnimKey = animKey;
+            gameState.frameIndex = 0;
+            gameState.animationFinished = false;
+            gameState.lastFrameTime = 0;
+            updateUI();
+        }
+
+        function updateUI() {
+            statusText.textContent = 'Текущая анимация: ' + gameState.currentAnimKey;
+        }
+
+        // --- ИГРОВОЙ ЦИКЛ ---
+        function gameLoop(timestamp) {
+            const animData = ANIMATIONS[gameState.currentAnimKey];
+
+            if (gameState.animationFinished && !animData.loop) {
+                 // Возврат в idle после завершения одноразовой анимации
+                 if (gameState.currentAnimKey !== 'idle') {
+                      setTimeout(() => setAnimation('idle'), 500);
+                 }
+            } else {
+                 if (!gameState.lastFrameTime) gameState.lastFrameTime = timestamp;
+                 const timeSinceLastFrame = timestamp - gameState.lastFrameTime;
+
+                 if (timeSinceLastFrame > animData.frameSpeed) {
+                     gameState.lastFrameTime = timestamp;
+
+                     if (gameState.frameIndex < animData.frames - 1) {
+                         gameState.frameIndex++;
+                     } else {
+                         if (animData.loop) {
+                             gameState.frameIndex = 0;
+                         } else {
+                             gameState.animationFinished = true;
+                         }
+                     }
+                 }
+            }
+
+            // --- ОТРИСОВКА (ИСПРАВЛЕННАЯ) ---
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Защита от выхода за пределы количества кадров
+            const safeIndex = gameState.frameIndex % animData.frames;
+            
+            // => ИСПРАВЛЕНИЕ ЗДЕСЬ: <=
+            // Просто умножаем индекс на ширину кадра.
+            const sx = safeIndex * FRAME_WIDTH;
+            const sy = animData.row * FRAME_HEIGHT;
+
+            ctx.drawImage(
+                gameState.image,
+                sx, sy, FRAME_WIDTH, FRAME_HEIGHT, // Откуда
+                0, 0, canvas.width, canvas.height // Куда (растягиваем)
+            );
+
+            requestAnimationFrame(gameLoop);
+        }
+    </script>
+</body>
+</html>
